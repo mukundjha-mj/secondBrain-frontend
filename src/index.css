@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+
+:root {
+    --purple-600: #7164c0;
+    --purple-500: #9492db;
+    --purple-200: #d9ddee;
+    --background-color: #e6e9ed;
+    --sidebar-background-color: #eeeeef;
+    --sidebar-text-color: #95989c;
+}
