@@ -8,4 +8,12 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss(),
   ],
+  define: {
+    global: 'globalThis',
+  },
+  resolve: {
+    alias: {
+      process: "process/browser",
+    },
+  },
 })

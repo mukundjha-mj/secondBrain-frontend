@@ -3,7 +3,10 @@ import type { ReactElement } from "react";
 interface ButtonProps {
     variant: "primary" | "secondary";
     text: string;
-    startIcon: ReactElement;
+    startIcon?: ReactElement;
+    onClick?: () => void;
+    fullwidth?: boolean;
+    loading?: boolean;
 }
 
 const variantStyle = {
@@ -15,7 +18,7 @@ const defaultStyle = "px-4 py-2 rounded-md flex items-center cursor-pointer font
 
 export const Button = (props: ButtonProps) => {
     return (
-        <button className={`${variantStyle[props.variant]} ${defaultStyle} `}>
+        <button className={`${variantStyle[props.variant]} ${defaultStyle} ${props.fullwidth ? "w-full flex justify-center items-center" : ""} ${props.loading ? "opacity-25" : ""}`} onClick={props.onClick} disabled={props.loading}>
             <div className="pr-2">
                 {props.startIcon}
             </div>
