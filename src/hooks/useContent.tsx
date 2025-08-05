@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 
 interface Content {
+    _id: string;
     title: string;
     link: string;
     type: "twitter" | "youtube";
@@ -13,8 +14,8 @@ export const useContent = () =>{
     const [contents, setContents] = useState<Content[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(()=>{
-        const fetchContent = async () => {
+    
+        const fetchContent = useCallback(async () => {
             try {
                 setLoading(true);
                 const token = localStorage.getItem("token") || localStorage.getItem("authorization");
@@ -34,7 +35,6 @@ export const useContent = () =>{
                     }
                 });
                 
-                console.log("Backend response:", response.data);
                 setContents(response.data.content || []);
                 
             } catch (error) {
@@ -54,10 +54,11 @@ export const useContent = () =>{
             } finally {
                 setLoading(false);
             }
-        };
-
+        
+        }, [])
+    useEffect(()=>{
         fetchContent();
-    }, [])
+    }, [fetchContent])
 
-    return { contents, loading };
+    return { contents, loading, refetch: fetchContent };
 }

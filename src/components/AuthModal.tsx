@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
+import { Button } from './Button';
 
 interface AuthModalProps {
     open: boolean;
@@ -12,26 +13,40 @@ export const AuthModal = ({ open, onClose, onLogin }: AuthModalProps) => {
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleAuth = async () => {
-        if (!email || !password) {
-            alert('Please fill in all fields');
+        // Proper validation logic
+        if (!email || !password || (!isLogin && (!firstName || !lastName))) {
+            alert('Please fill in all required fields');
             return;
         }
 
         setLoading(true);
         try {
             const endpoint = isLogin ? '/api/v1/signin' : '/api/v1/signup';
-            const response = await axios.post(`${BACKEND_URL}${endpoint}`, {
+            const payload: any = {
                 email,
                 password
+            };
+            
+            if (!isLogin) {
+                payload.firstName = firstName;
+                payload.lastName = lastName;
+            }
+
+            const response = await axios.post(`${BACKEND_URL}${endpoint}`, payload, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
 
             const token = response.data.token;
-            localStorage.setItem('token', token);
-            
-            alert(`${isLogin ? 'Login' : 'Signup'} successful!`);
+            // Store with consistent key name
+            localStorage.setItem('authorization', token);
+
             onLogin();
             onClose();
         } catch (error) {
@@ -49,65 +64,138 @@ export const AuthModal = ({ open, onClose, onLogin }: AuthModalProps) => {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-96">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">
-                        {isLogin ? 'Login' : 'Sign Up'}
-                    </h2>
-                    <button 
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        ✕
-                    </button>
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+             style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            <div className="rounded-xl shadow-lg w-full max-w-md overflow-hidden" 
+                 style={{ backgroundColor: 'var(--card)' }}>
+                {/* Header */}
+                <div className="px-6 py-5 border-b" style={{ borderColor: 'var(--border)' }}>
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-semibold" style={{ color: 'var(--foreground)' }}>
+                            {isLogin ? 'Welcome Back' : 'Create Account'}
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="p-2 rounded-lg transition-colors hover:opacity-70 focus:outline-none"
+                            style={{ color: 'var(--muted-foreground)' }}
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                        {isLogin ? 'Sign in to your account' : 'Sign up to get started'}
+                    </p>
                 </div>
 
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                            placeholder="Enter your email"
-                        />
-                    </div>
+                {/* Content */}
+                <div className="px-6 py-6">
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full px-3 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                                style={{
+                                    backgroundColor: 'var(--input)',
+                                    borderColor: 'var(--border)',
+                                    color: 'var(--foreground)',
+                                    '--tw-ring-color': 'var(--ring)'
+                                } as React.CSSProperties}
+                                placeholder="Enter your email"
+                                disabled={loading}
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                            placeholder="Enter your password"
-                        />
-                    </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-3 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                                style={{
+                                    backgroundColor: 'var(--input)',
+                                    borderColor: 'var(--border)',
+                                    color: 'var(--foreground)',
+                                    '--tw-ring-color': 'var(--ring)'
+                                } as React.CSSProperties}
+                                placeholder="Enter your password"
+                                disabled={loading}
+                            />
+                        </div>
 
-                    <button
-                        onClick={handleAuth}
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white rounded-md py-2 px-4 hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        {loading ? 'Loading...' : (isLogin ? 'Login' : 'Sign Up')}
-                    </button>
+                        {!isLogin && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                                        First Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={firstName}
+                                        onChange={(e) => setFirstName(e.target.value)}
+                                        className="w-full px-3 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                                        style={{
+                                            backgroundColor: 'var(--input)',
+                                            borderColor: 'var(--border)',
+                                            color: 'var(--foreground)',
+                                            '--tw-ring-color': 'var(--ring)'
+                                        } as React.CSSProperties}
+                                        placeholder="Enter your first name"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-2" style={{ color: 'var(--foreground)' }}>
+                                        Last Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        className="w-full px-3 py-2.5 rounded-lg border transition-colors focus:outline-none focus:ring-2"
+                                        style={{
+                                            backgroundColor: 'var(--input)',
+                                            borderColor: 'var(--border)',
+                                            color: 'var(--foreground)',
+                                            '--tw-ring-color': 'var(--ring)'
+                                        } as React.CSSProperties}
+                                        placeholder="Enter your last name"
+                                        disabled={loading}
+                                    />
+                                </div>
+                            </>
+                        )}
 
-                    <div className="text-center">
-                        <button
-                            onClick={() => setIsLogin(!isLogin)}
-                            className="text-blue-600 hover:text-blue-800"
-                        >
-                            {isLogin 
-                                ? "Don't have an account? Sign up" 
-                                : "Already have an account? Login"
-                            }
-                        </button>
+                        <div className="pt-2">
+                            <Button
+                                onClick={handleAuth}
+                                variant="primary"
+                                text={loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
+                                loading={loading}
+                                fullwidth={true}
+                            />
+                        </div>
+
+                        <div className="text-center pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
+                            <button
+                                onClick={() => setIsLogin(!isLogin)}
+                                className="text-sm transition-colors hover:underline cursor-pointer"
+                                style={{ color: 'var(--primary)' }}
+                                disabled={loading}
+                            >
+                                {isLogin
+                                    ? "Don't have an account? Create one"
+                                    : "Already have an account? Sign in"
+                                }
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
